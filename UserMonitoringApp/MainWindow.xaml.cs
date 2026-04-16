@@ -1,24 +1,40 @@
-﻿using System.Text;
+﻿using Npgsql;
+using System.Configuration;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace UserMonitoringApp
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+            TestConnection();
+        }
+
+        private void TestConnection()
+        {
+            try
+            {
+                var connSettings = ConfigurationManager.ConnectionStrings["DefaultConnection"];
+
+                if (connSettings == null)
+                {
+                    MessageBox.Show("Строка подключения не найдена");
+                    return;
+                }
+
+                string connString = connSettings.ConnectionString;
+
+                using var conn = new NpgsqlConnection(connString);
+                conn.Open();
+
+                MessageBox.Show("Подключение к БД успешно");
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show("Ошибка: " + ex.Message);
+            }
         }
     }
 }
