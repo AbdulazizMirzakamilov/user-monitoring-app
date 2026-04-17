@@ -24,5 +24,17 @@ namespace UserMonitoringApp
 
             dataGrid.ItemsSource = data;
         }
+
+        private void LoadIpReport_Click(object sender, RoutedEventArgs e)
+        {
+            var service = new MonitoringService();
+
+            var data = service.GetIpReport(
+                ipDateFrom.SelectedDate.Value,
+                ipDateTo.SelectedDate.Value
+            );
+
+            ipGrid.ItemsSource = data;
+        }
     }
 }

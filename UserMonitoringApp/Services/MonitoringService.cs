@@ -55,5 +55,47 @@ namespace UserMonitoringApp.Services
 
             return result;
         }
+
+        public List<IpReportItem> GetIpReport(DateTime from, DateTime to)
+        {
+            var result = new List<IpReportItem>();
+
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            string sql = @"
+                SELECT 
+                    u.username,
+                    u.last_name || ' ' || u.first_name AS full_name,
+                    COUNT(DISTINCT ll.ip_address) AS ip_count,
+                    DATE(ll.logged_at) AS log_date
+                FROM login_log ll
+                JOIN users u ON u.user_id = ll.user_id
+                WHERE ll.logged_at BETWEEN @from AND @to
+                  AND ll.is_success = TRUE
+                GROUP BY u.username, full_name, log_date
+                HAVING COUNT(DISTINCT ll.ip_address) > 1
+                ORDER BY log_date DESC;
+            ";
+
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("from", from);
+            cmd.Parameters.AddWithValue("to", to);
+
+            using var reader = cmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                result.Add(new IpReportItem
+                {
+                    Username = reader.GetString(0),
+                    FullName = reader.GetString(1),
+                    IpCount = reader.GetInt32(2),
+                    Date = reader.GetDateTime(3)
+                });
+            }
+
+            return result;
+        }
     }
 }

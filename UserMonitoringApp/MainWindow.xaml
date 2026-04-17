@@ -21,7 +21,29 @@
             <Button Content="Сформировать" Click="LoadReport_Click" Margin="0,10,0,10"/>
 
             <DataGrid x:Name="dataGrid" AutoGenerateColumns="True"/>
-
         </StackPanel>
+
+        <TabControl>
+
+            <TabItem Header="Аномальная активность">
+            </TabItem>
+
+            <TabItem Header="IP анализ">
+                <StackPanel Margin="10">
+
+                    <DatePicker x:Name="ipDateFrom"/>
+                    <DatePicker x:Name="ipDateTo"/>
+
+                    <Button Content="Сформировать"
+                    Click="LoadIpReport_Click"
+                    Margin="0,10,0,10"/>
+
+                    <DataGrid x:Name="ipGrid"/>
+
+                </StackPanel>
+            </TabItem>
+
+        </TabControl>
     </Grid>
+    
 </Window>
