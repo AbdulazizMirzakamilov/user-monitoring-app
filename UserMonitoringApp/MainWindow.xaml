@@ -6,7 +6,22 @@
         xmlns:local="clr-namespace:UserMonitoringApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Grid Margin="10">
+        <StackPanel>
 
+            <TextBlock Text="Дата с"/>
+            <DatePicker x:Name="dateFrom"/>
+
+            <TextBlock Text="Дата по"/>
+            <DatePicker x:Name="dateTo"/>
+
+            <TextBlock Text="Порог"/>
+            <TextBox x:Name="thresholdBox"/>
+
+            <Button Content="Сформировать" Click="LoadReport_Click" Margin="0,10,0,10"/>
+
+            <DataGrid x:Name="dataGrid" AutoGenerateColumns="True"/>
+
+        </StackPanel>
     </Grid>
 </Window>
