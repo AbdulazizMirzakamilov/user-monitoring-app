@@ -1,7 +1,9 @@
 ﻿using Npgsql;
 using System.Configuration;
-using UserMonitoringApp.Services;
 using System.Windows;
+using System.Windows.Controls;
+using UserMonitoringApp.Models;
+using UserMonitoringApp.Services;
 
 namespace UserMonitoringApp
 {
@@ -41,7 +43,8 @@ namespace UserMonitoringApp
             );
 
             dataGrid.ItemsSource = null;
-            dataGrid.ItemsSource = data;
+            _anomalyData = data;
+            dataGrid.ItemsSource = _anomalyData;
         }
 
         private void LoadIpReport_Click(object sender, RoutedEventArgs e)
@@ -99,6 +102,23 @@ namespace UserMonitoringApp
 
             contGrid.ItemsSource = null;
             contGrid.ItemsSource = data;
+        }
+
+        private List<AnomalyReportItem> _anomalyData;
+
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_anomalyData == null) return;
+
+            var text = searchBox.Text;
+
+            var filtered = _anomalyData
+                .Where(x =>
+                    x.Username.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                    x.FullName.Contains(text, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            dataGrid.ItemsSource = filtered;
         }
     }
 }

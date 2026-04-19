@@ -49,6 +49,20 @@
                         </Grid>
                     </Border>
 
+                    <StackPanel Grid.Row="1"
+                                Orientation="Horizontal"
+                                Margin="0,10,0,0">
+
+                        <TextBlock Text="Поиск:"
+                                   VerticalAlignment="Center"
+                                   FontWeight="Bold"/>
+
+                        <TextBox x:Name="searchBox"
+                                 Width="200"
+                                 Margin="10,0,0,0"
+                                 TextChanged="SearchBox_TextChanged"/>
+                    </StackPanel>
+
                     <DataGrid Grid.Row="2"
                               x:Name="dataGrid"
                               AutoGenerateColumns="False"
