@@ -51,9 +51,23 @@
 
                     <DataGrid Grid.Row="2"
                               x:Name="dataGrid"
-                              Margin="0,10,0,0"
-                              AutoGenerateColumns="True"
-                              IsReadOnly="True"/>
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserSortColumns="True"
+                              Margin="0,10,0,0">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Пользователь"
+                            Binding="{Binding Username}"/>
+
+                            <DataGridTextColumn Header="ФИО"
+                            Binding="{Binding FullName}"/>
+
+                            <DataGridTextColumn Header="Количество запросов"
+                            Binding="{Binding RequestsCount}"/>
+                        </DataGrid.Columns>
+
+                    </DataGrid>
                 </Grid>
             </TabItem>
 
@@ -94,9 +108,26 @@
 
                     <DataGrid Grid.Row="1"
                               x:Name="ipGrid"
-                              Margin="0,10,0,0"
-                              AutoGenerateColumns="True"
-                              IsReadOnly="True"/>
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserSortColumns="True"
+                              Margin="0,10,0,0">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Пользователь"
+                            Binding="{Binding Username}"/>
+
+                            <DataGridTextColumn Header="ФИО"
+                            Binding="{Binding FullName}"/>
+
+                            <DataGridTextColumn Header="Количество IP"
+                            Binding="{Binding IpCount}"/>
+
+                            <DataGridTextColumn Header="Дата"
+                            Binding="{Binding Date}"/>
+                        </DataGrid.Columns>
+
+                    </DataGrid>
                 </Grid>
             </TabItem>
 
@@ -142,10 +173,21 @@
                     </Border>
 
                     <DataGrid Grid.Row="1"
-                  x:Name="contGrid"
-                  Margin="0,10,0,0"
-                  AutoGenerateColumns="True"
-                  IsReadOnly="True"/>
+                              x:Name="contGrid"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserSortColumns="True"
+                              Margin="0,10,0,0">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ФИО"
+                            Binding="{Binding FullName}"/>
+
+                            <DataGridTextColumn Header="Дней подряд"
+                            Binding="{Binding DaysCount}"/>
+                        </DataGrid.Columns>
+
+                    </DataGrid>
                 </Grid>
             </TabItem>
 
