@@ -12,6 +12,15 @@ namespace UserMonitoringApp
         public MainWindow()
         {
             InitializeComponent();
+
+            dateFrom.SelectedDate = DateTime.Now.AddDays(-7);
+            dateTo.SelectedDate = DateTime.Now;
+
+            ipDateFrom.SelectedDate = DateTime.Now.AddDays(-7);
+            ipDateTo.SelectedDate = DateTime.Now;
+
+            contDateFrom.SelectedDate = DateTime.Now.AddDays(-7);
+            contDateTo.SelectedDate = DateTime.Now;
         }
 
         private void LoadReport_Click(object sender, RoutedEventArgs e)
@@ -42,6 +51,11 @@ namespace UserMonitoringApp
                 threshold
             );
 
+            if (data.Count == 0)
+            {
+                MessageBox.Show("Данные не найдены");
+            }
+
             dataGrid.ItemsSource = null;
             _anomalyData = data;
             dataGrid.ItemsSource = _anomalyData;
@@ -68,8 +82,14 @@ namespace UserMonitoringApp
                 ipDateTo.SelectedDate.Value
             );
 
+            if (data.Count == 0)
+            {
+                MessageBox.Show("Данные не найдены");
+            }
+
             ipGrid.ItemsSource = null;
-            ipGrid.ItemsSource = data;
+            _ipData = data;
+            ipGrid.ItemsSource = _ipData;
         }
 
         private void LoadContinuousReport_Click(object sender, RoutedEventArgs e)
@@ -100,11 +120,17 @@ namespace UserMonitoringApp
                 threshold
             );
 
+            if (data.Count == 0)
+            {
+                MessageBox.Show("Данные не найдены");
+            }
+
             contGrid.ItemsSource = null;
             contGrid.ItemsSource = data;
         }
 
         private List<AnomalyReportItem> _anomalyData;
+        private List<IpReportItem> _ipData;
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -119,6 +145,21 @@ namespace UserMonitoringApp
                 .ToList();
 
             dataGrid.ItemsSource = filtered;
+        }
+
+        private void IpSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_ipData == null) return;
+
+            var text = ipSearchBox.Text;
+
+            var filtered = _ipData
+                .Where(x =>
+                    x.Username.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                    x.FullName.Contains(text, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            ipGrid.ItemsSource = filtered;
         }
     }
 }

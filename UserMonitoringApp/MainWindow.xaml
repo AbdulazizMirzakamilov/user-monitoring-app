@@ -1,7 +1,7 @@
 ﻿<Window x:Class="UserMonitoringApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="User Monitoring" Height="500" Width="800"
+        Title="Система мониторинга активности пользователей" Width="1000" Height="600"
         WindowStartupLocation="CenterScreen">
 
     <Grid Background="#F5F6FA">
@@ -119,6 +119,14 @@
                                     Click="LoadIpReport_Click"/>
                         </Grid>
                     </Border>
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="Поиск:" VerticalAlignment="Center"/>
+                        <TextBox x:Name="ipSearchBox"
+             Width="200"
+             Margin="10,0,0,0"
+             TextChanged="IpSearchBox_TextChanged"/>
+                    </StackPanel>
 
                     <DataGrid Grid.Row="1"
                               x:Name="ipGrid"
