@@ -97,5 +97,63 @@ namespace UserMonitoringApp.Services
 
             return result;
         }
+
+        public List<ContinuousWorkItem> GetContinuousWorkReport(DateTime from, DateTime to, int threshold)
+        {
+            var result = new List<ContinuousWorkItem>();
+
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            string sql = @"
+        WITH activity_days AS (
+            SELECT 
+                user_id,
+                DATE(recorded_at) AS day
+            FROM activity_log
+            WHERE recorded_at BETWEEN @from AND @to
+            GROUP BY user_id, day
+        ),
+        grouped AS (
+            SELECT 
+                user_id,
+                day,
+                day - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY day)) * INTERVAL '1 day' AS grp
+            FROM activity_days
+        ),
+        series AS (
+            SELECT 
+                user_id,
+                COUNT(*) AS days_count
+            FROM grouped
+            GROUP BY user_id, grp
+        )
+        SELECT 
+            u.last_name || ' ' || u.first_name AS full_name,
+            s.days_count
+        FROM series s
+        JOIN users u ON u.user_id = s.user_id
+        WHERE s.days_count >= @threshold
+        ORDER BY s.days_count DESC;
+    ";
+
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("from", from);
+            cmd.Parameters.AddWithValue("to", to);
+            cmd.Parameters.AddWithValue("threshold", threshold);
+
+            using var reader = cmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                result.Add(new ContinuousWorkItem
+                {
+                    FullName = reader.GetString(0),
+                    DaysCount = reader.GetInt32(1)
+                });
+            }
+
+            return result;
+        }
     }
 }

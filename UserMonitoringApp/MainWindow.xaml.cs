@@ -36,5 +36,18 @@ namespace UserMonitoringApp
 
             ipGrid.ItemsSource = data;
         }
+
+        private void LoadContinuousReport_Click(object sender, RoutedEventArgs e)
+        {
+            var service = new MonitoringService();
+
+            var data = service.GetContinuousWorkReport(
+                contDateFrom.SelectedDate.Value,
+                contDateTo.SelectedDate.Value,
+                int.Parse(contThresholdBox.Text)
+            );
+
+            contGrid.ItemsSource = data;
+        }
     }
 }
