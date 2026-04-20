@@ -44,10 +44,10 @@
 ## 🖼️ Скриншоты интерфейса
 
 ### Аномальная активность
-> *Фильтрация по датам, настройка порога и таблица результатов.* <img width="971" height="686" alt="image" src="https://github.com/user-attachments/assets/f1a218e0-237f-40d3-9a9a-6bfc54209e43" />
+> *Фильтрация по датам, настройка порога и таблица результатов.* <img width="1226" height="738" alt="image" src="https://github.com/user-attachments/assets/fb5bcfeb-d23c-41c8-b21e-22d413dc26b6" />
 
 ### Анализ IP-адресов
-> *Отображение нескольких IP у одного пользователя.* <img width="971" height="686" alt="image" src="https://github.com/user-attachments/assets/6bf71d15-0e63-4de4-a5de-ef3a0c9f2a94" />
+> *Отображение нескольких IP у одного пользователя.* <img width="1228" height="741" alt="image" src="https://github.com/user-attachments/assets/505c2c01-ab68-4393-a6c2-03c7c860f2db" />
 
 ### Непрерывная работа
-> *Список пользователей с DaysCount ≥ 7.* <img width="968" height="689" alt="image" src="https://github.com/user-attachments/assets/15b06813-f8e3-4b2d-899f-9d83afe690dd" />
+> *Список пользователей с DaysCount ≥ 6.* <img width="1227" height="737" alt="image" src="https://github.com/user-attachments/assets/41905879-1089-488e-85e8-a8a14732ca29" />
