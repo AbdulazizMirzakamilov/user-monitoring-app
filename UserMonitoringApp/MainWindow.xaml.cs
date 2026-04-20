@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using UserMonitoringApp.Models;
 using UserMonitoringApp.Services;
+using ClosedXML.Excel;
+using Microsoft.Win32;
 
 namespace UserMonitoringApp
 {
@@ -126,11 +128,13 @@ namespace UserMonitoringApp
             }
 
             contGrid.ItemsSource = null;
-            contGrid.ItemsSource = data;
+            _contData = data;
+            contGrid.ItemsSource = _contData;
         }
 
         private List<AnomalyReportItem> _anomalyData;
         private List<IpReportItem> _ipData;
+        private List<ContinuousWorkItem> _contData;
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -160,6 +164,71 @@ namespace UserMonitoringApp
                 .ToList();
 
             ipGrid.ItemsSource = filtered;
+        }
+
+        private void ExportToExcel<T>(List<T> data, string fileName)
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "Excel files (*.xlsx)|*.xlsx",
+                FileName = fileName
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Report");
+
+            var properties = typeof(T).GetProperties();
+
+            // Заголовки
+            for (int i = 0; i < properties.Length; i++)
+            {
+                worksheet.Cell(1, i + 1).Value = properties[i].Name;
+            }
+
+            // Данные
+            for (int row = 0; row < data.Count; row++)
+            {
+                for (int col = 0; col < properties.Length; col++)
+                {
+                    var value = properties[col].GetValue(data[row]);
+                    worksheet.Cell(row + 2, col + 1).Value = value?.ToString();
+                }
+            }
+
+            workbook.SaveAs(dialog.FileName);
+        }
+
+        private void ExportAnomaly_Click(object sender, RoutedEventArgs e)
+        {
+            if (_anomalyData == null || _anomalyData.Count == 0)
+            {
+                MessageBox.Show("Нет данных для экспорта");
+                return;
+            }
+
+            ExportToExcel(_anomalyData, "AnomalyReport.xlsx");
+        }
+        private void ExportIp_Click(object sender, RoutedEventArgs e)
+        {
+            if (_ipData == null || _ipData.Count == 0)
+            {
+                MessageBox.Show("Нет данных для экспорта");
+                return;
+            }
+
+            ExportToExcel(_ipData, "IpReport.xlsx");
+        }
+        private void ExportContinuous_Click(object sender, RoutedEventArgs e)
+        {
+            if (_contData == null || _contData.Count == 0)
+            {
+                MessageBox.Show("Нет данных для экспорта");
+                return;
+            }
+
+            ExportToExcel(_contData, "ContinuousReport.xlsx");
         }
     }
 }

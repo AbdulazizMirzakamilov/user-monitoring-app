@@ -23,6 +23,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" Margin="5">
@@ -46,6 +47,7 @@
                                     Height="35"
                                     Margin="10,20,0,0"
                                     Click="LoadReport_Click"/>
+                            <Button Grid.Column="4" Content="Экспорт" Width="130" Height="35" Margin="10,20,0,0" Click="ExportAnomaly_Click"/>
                         </Grid>
                     </Border>
 
@@ -99,6 +101,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" Margin="5">
@@ -117,15 +120,22 @@
                                     Height="35"
                                     Margin="10,20,0,0"
                                     Click="LoadIpReport_Click"/>
+                            <Button Grid.Column="3"
+                                    Content="Экспорт"
+                                    Width="120"
+                                    Height="35"
+                                    Margin="10,20,0,0"
+                                    Click="ExportIp_Click"/>
                         </Grid>
                     </Border>
 
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,0">
                         <TextBlock Text="Поиск:" VerticalAlignment="Center"/>
                         <TextBox x:Name="ipSearchBox"
-             Width="200"
-             Margin="10,0,0,0"
-             TextChanged="IpSearchBox_TextChanged"/>
+                                Width="200"
+                                Margin="10,0,0,0"
+                                TextChanged="IpSearchBox_TextChanged"/>
+
                     </StackPanel>
 
                     <DataGrid Grid.Row="1"
@@ -168,6 +178,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" Margin="5">
@@ -186,11 +197,17 @@
                             </StackPanel>
 
                             <Button Grid.Column="3"
-                        Content="Сформировать"
-                        Width="130"
-                        Height="35"
-                        Margin="10,20,0,0"
-                        Click="LoadContinuousReport_Click"/>
+                                    Content="Сформировать"
+                                    Width="130"
+                                    Height="35"
+                                    Margin="10,20,0,0"
+                                    Click="LoadContinuousReport_Click"/>
+                            <Button Grid.Column="4"
+                                    Content="Экспорт"
+                                    Width="120"
+                                    Height="35"
+                                    Margin="10,20,0,0"
+                                    Click="ExportContinuous_Click"/>
                         </Grid>
                     </Border>
 
