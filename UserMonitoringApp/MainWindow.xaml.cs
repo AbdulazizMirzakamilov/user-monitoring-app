@@ -1,29 +1,40 @@
-﻿using Npgsql;
-using System.Configuration;
+﻿using ClosedXML.Excel;
+using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
 using UserMonitoringApp.Models;
 using UserMonitoringApp.Services;
-using ClosedXML.Excel;
-using Microsoft.Win32;
 
 namespace UserMonitoringApp
 {
     public partial class MainWindow : Window
     {
+        private List<AnomalyReportItem> _anomalyData;
+        private List<IpReportItem> _ipData;
+        private List<ContinuousWorkItem> _contData;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            dateFrom.SelectedDate = DateTime.Now.AddDays(-30);
-            dateTo.SelectedDate = DateTime.Now;
+            // Инициализация дат по умолчанию
+            var startDate = DateTime.Now.AddDays(-30);
+            var endDate = DateTime.Now;
 
-            ipDateFrom.SelectedDate = DateTime.Now.AddDays(-30);
-            ipDateTo.SelectedDate = DateTime.Now;
+            dateFrom.SelectedDate = startDate;
+            dateTo.SelectedDate = endDate;
 
-            contDateFrom.SelectedDate = DateTime.Now.AddDays(-30);
-            contDateTo.SelectedDate = DateTime.Now;
+            ipDateFrom.SelectedDate = startDate;
+            ipDateTo.SelectedDate = endDate;
+
+            contDateFrom.SelectedDate = startDate;
+            contDateTo.SelectedDate = endDate;
+
+            opDateFrom.SelectedDate = startDate;
+            opDateTo.SelectedDate = endDate;
         }
+
+        #region Обработчики загрузки данных
 
         private void LoadReport_Click(object sender, RoutedEventArgs e)
         {
@@ -46,7 +57,6 @@ namespace UserMonitoringApp
             }
 
             var service = new MonitoringService();
-
             var data = service.GetAnomalyReport(
                 dateFrom.SelectedDate.Value,
                 dateTo.SelectedDate.Value,
@@ -78,7 +88,6 @@ namespace UserMonitoringApp
             }
 
             var service = new MonitoringService();
-
             var data = service.GetIpReport(
                 ipDateFrom.SelectedDate.Value,
                 ipDateTo.SelectedDate.Value
@@ -115,7 +124,6 @@ namespace UserMonitoringApp
             }
 
             var service = new MonitoringService();
-
             var data = service.GetContinuousWorkReport(
                 contDateFrom.SelectedDate.Value,
                 contDateTo.SelectedDate.Value,
@@ -132,20 +140,39 @@ namespace UserMonitoringApp
             contGrid.ItemsSource = _contData;
         }
 
-        private List<AnomalyReportItem> _anomalyData;
-        private List<IpReportItem> _ipData;
-        private List<ContinuousWorkItem> _contData;
+        private void LoadOperationStats_Click(object sender, RoutedEventArgs e)
+        {
+            var service = new MonitoringService();
+            var data = service.GetOperationStats(
+                opDateFrom.SelectedDate.Value,
+                opDateTo.SelectedDate.Value
+            );
+
+            operationGrid.ItemsSource = data;
+        }
+
+        private void LoadDailyActivity_Click(object sender, RoutedEventArgs e)
+        {
+            if (date.SelectedDate == null) return;
+
+            var service = new MonitoringService();
+            var data = service.GetDailyActivity(date.SelectedDate.Value);
+
+            dailyGrid.ItemsSource = data;
+        }
+
+        #endregion
+
+        #region Поиск и фильтрация
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (_anomalyData == null) return;
 
             var text = searchBox.Text;
-
             var filtered = _anomalyData
-                .Where(x =>
-                    x.Username.Contains(text, StringComparison.OrdinalIgnoreCase) ||
-                    x.FullName.Contains(text, StringComparison.OrdinalIgnoreCase))
+                .Where(x => x.Username.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                            x.FullName.Contains(text, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             dataGrid.ItemsSource = filtered;
@@ -156,15 +183,17 @@ namespace UserMonitoringApp
             if (_ipData == null) return;
 
             var text = ipSearchBox.Text;
-
             var filtered = _ipData
-                .Where(x =>
-                    x.Username.Contains(text, StringComparison.OrdinalIgnoreCase) ||
-                    x.FullName.Contains(text, StringComparison.OrdinalIgnoreCase))
+                .Where(x => x.Username.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                            x.FullName.Contains(text, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             ipGrid.ItemsSource = filtered;
         }
+
+        #endregion
+
+        #region Экспорт в Excel
 
         private void ExportToExcel<T>(List<T> data, string fileName)
         {
@@ -178,10 +207,9 @@ namespace UserMonitoringApp
 
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Report");
-
             var properties = typeof(T).GetProperties();
 
-            // Красивые названия колонок
+            // Словарь для маппинга заголовков
             var headers = new Dictionary<string, string>
             {
                 { "Username", "Пользователь" },
@@ -189,28 +217,31 @@ namespace UserMonitoringApp
                 { "RequestsCount", "Количество запросов" },
                 { "IpCount", "Количество IP" },
                 { "Date", "Дата" },
-                { "DaysCount", "Дней подряд" }
+                { "DaysCount", "Дней подряд" },
+                { "Name", "Операция" },
+                { "TotalCount", "Количество" },
+                { "TotalRequests", "Всего запросов" }
             };
 
-            // Заголовки
+            // Формирование шапки таблицы
             for (int i = 0; i < properties.Length; i++)
             {
                 var propName = properties[i].Name;
-                var header = headers.ContainsKey(propName) ? headers[propName] : propName;
+                var headerText = headers.ContainsKey(propName) ? headers[propName] : propName;
 
                 var cell = worksheet.Cell(1, i + 1);
-                cell.Value = header;
+                cell.Value = headerText;
                 cell.Style.Font.Bold = true;
                 cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#EEF1F7");
             }
 
-            // Данные
+            // Заполнение данными
             for (int row = 0; row < data.Count; row++)
             {
                 for (int col = 0; col < properties.Length; col++)
                 {
                     var value = properties[col].GetValue(data[row]);
-
                     var cell = worksheet.Cell(row + 2, col + 1);
 
                     if (value is DateTime dt)
@@ -220,32 +251,28 @@ namespace UserMonitoringApp
                     }
                     else
                     {
-                        cell.Value = value?.ToString();
+                        cell.Value = value?.ToString() ?? "";
                     }
 
                     cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 }
             }
 
-            // Автоширина колонок
-            worksheet.Columns().AdjustToContents();
-
-            // Границы
+            // Оформление: границы и автоширина
             var range = worksheet.Range(1, 1, data.Count + 1, properties.Length);
             range.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             range.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            worksheet.Columns().AdjustToContents();
 
-            // Позиция под таблицей
+            // Подвал отчета
             int infoRow = data.Count + 3;
-
             worksheet.Cell(infoRow, 1).Value = "Дата формирования:";
-            worksheet.Cell(infoRow, 2).Value = DateTime.Now;
-            worksheet.Cell(infoRow, 2).Style.DateFormat.Format = "dd.MM.yyyy HH:mm";
+            worksheet.Cell(infoRow, 2).Value = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
 
             worksheet.Cell(infoRow + 1, 1).Value = "Сформировал:";
             worksheet.Cell(infoRow + 1, 2).Value = Environment.UserName;
 
-            worksheet.Range(infoRow, 1, infoRow + 1, 2).Style.Font.Italic = true;
+            worksheet.Range(infoRow, 1, infoRow + 1, 1).Style.Font.Bold = true;
             worksheet.Columns().AdjustToContents();
 
             workbook.SaveAs(dialog.FileName);
@@ -258,9 +285,9 @@ namespace UserMonitoringApp
                 MessageBox.Show("Нет данных для экспорта");
                 return;
             }
-
             ExportToExcel(_anomalyData, "AnomalyReport.xlsx");
         }
+
         private void ExportIp_Click(object sender, RoutedEventArgs e)
         {
             if (_ipData == null || _ipData.Count == 0)
@@ -268,9 +295,9 @@ namespace UserMonitoringApp
                 MessageBox.Show("Нет данных для экспорта");
                 return;
             }
-
             ExportToExcel(_ipData, "IpReport.xlsx");
         }
+
         private void ExportContinuous_Click(object sender, RoutedEventArgs e)
         {
             if (_contData == null || _contData.Count == 0)
@@ -278,8 +305,9 @@ namespace UserMonitoringApp
                 MessageBox.Show("Нет данных для экспорта");
                 return;
             }
-
             ExportToExcel(_contData, "ContinuousReport.xlsx");
         }
+
+        #endregion
     }
 }

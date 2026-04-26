@@ -1,7 +1,8 @@
 ﻿<Window x:Class="UserMonitoringApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Система мониторинга активности пользователей" Width="1000" Height="600"
+        Title="Система мониторинга активности пользователей" 
+        Width="1000" Height="600"
         WindowStartupLocation="CenterScreen">
 
     <Grid Background="#F5F6FA">
@@ -9,7 +10,6 @@
 
             <TabItem Header="Аномальная активность">
                 <Grid Margin="10">
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -43,22 +43,22 @@
 
                             <Button Grid.Column="3"
                                     Content="Сформировать"
-                                    Width="130"
-                                    Height="35"
+                                    Width="130" Height="35"
                                     Margin="10,20,0,0"
                                     Click="LoadReport_Click"/>
-                            <Button Grid.Column="4" Content="Экспорт" Width="130" Height="35" Margin="10,20,0,0" Click="ExportAnomaly_Click"/>
+
+                            <Button Grid.Column="4" 
+                                    Content="Экспорт" 
+                                    Width="130" Height="35" 
+                                    Margin="10,20,0,0" 
+                                    Click="ExportAnomaly_Click"/>
                         </Grid>
                     </Border>
 
-                    <StackPanel Grid.Row="1"
-                                Orientation="Horizontal"
-                                Margin="0,10,0,0">
-
-                        <TextBlock Text="Поиск:"
-                                   VerticalAlignment="Center"
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="Поиск:" 
+                                   VerticalAlignment="Center" 
                                    FontWeight="Bold"/>
-
                         <TextBox x:Name="searchBox"
                                  Width="200"
                                  Margin="10,0,0,0"
@@ -71,25 +71,17 @@
                               IsReadOnly="True"
                               CanUserSortColumns="True"
                               Margin="0,10,0,0">
-
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Пользователь"
-                            Binding="{Binding Username}"/>
-
-                            <DataGridTextColumn Header="ФИО"
-                            Binding="{Binding FullName}"/>
-
-                            <DataGridTextColumn Header="Количество запросов"
-                            Binding="{Binding RequestsCount}"/>
+                            <DataGridTextColumn Header="Пользователь" Binding="{Binding Username}"/>
+                            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}"/>
+                            <DataGridTextColumn Header="Количество запросов" Binding="{Binding RequestsCount}"/>
                         </DataGrid.Columns>
-
                     </DataGrid>
                 </Grid>
             </TabItem>
 
             <TabItem Header="IP анализ">
                 <Grid Margin="10">
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -116,56 +108,50 @@
 
                             <Button Grid.Column="2"
                                     Content="Сформировать"
-                                    Width="130"
-                                    Height="35"
+                                    Width="130" Height="35"
                                     Margin="10,20,0,0"
                                     Click="LoadIpReport_Click"/>
+
                             <Button Grid.Column="3"
                                     Content="Экспорт"
-                                    Width="120"
-                                    Height="35"
+                                    Width="120" Height="35"
                                     Margin="10,20,0,0"
                                     Click="ExportIp_Click"/>
                         </Grid>
                     </Border>
 
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,0">
-                        <TextBlock Text="Поиск:" VerticalAlignment="Center"/>
-                        <TextBox x:Name="ipSearchBox"
-                                Width="200"
-                                Margin="10,0,0,0"
-                                TextChanged="IpSearchBox_TextChanged"/>
+                    <Grid Grid.Row="1" Margin="0,10,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                    </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="Поиск:" VerticalAlignment="Center"/>
+                            <TextBox x:Name="ipSearchBox"
+                                     Width="200"
+                                     Margin="10,0,0,0"
+                                     TextChanged="IpSearchBox_TextChanged"/>
+                        </StackPanel>
 
-                    <DataGrid Grid.Row="1"
-                              x:Name="ipGrid"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserSortColumns="True"
-                              Margin="0,10,0,0">
-
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Пользователь"
-                            Binding="{Binding Username}"/>
-
-                            <DataGridTextColumn Header="ФИО"
-                            Binding="{Binding FullName}"/>
-
-                            <DataGridTextColumn Header="Количество IP"
-                            Binding="{Binding IpCount}"/>
-
-                            <DataGridTextColumn Header="Дата"
-                            Binding="{Binding Date}"/>
-                        </DataGrid.Columns>
-
-                    </DataGrid>
+                        <DataGrid Grid.Row="1"
+                                  x:Name="ipGrid"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserSortColumns="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Пользователь" Binding="{Binding Username}"/>
+                                <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}"/>
+                                <DataGridTextColumn Header="Количество IP" Binding="{Binding IpCount}"/>
+                                <DataGridTextColumn Header="Дата" Binding="{Binding Date}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
                 </Grid>
             </TabItem>
 
             <TabItem Header="Непрерывная работа">
                 <Grid Margin="10">
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -198,14 +184,13 @@
 
                             <Button Grid.Column="3"
                                     Content="Сформировать"
-                                    Width="130"
-                                    Height="35"
+                                    Width="130" Height="35"
                                     Margin="10,20,0,0"
                                     Click="LoadContinuousReport_Click"/>
+
                             <Button Grid.Column="4"
                                     Content="Экспорт"
-                                    Width="120"
-                                    Height="35"
+                                    Width="120" Height="35"
                                     Margin="10,20,0,0"
                                     Click="ExportContinuous_Click"/>
                         </Grid>
@@ -217,15 +202,99 @@
                               IsReadOnly="True"
                               CanUserSortColumns="True"
                               Margin="0,10,0,0">
-
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="ФИО"
-                            Binding="{Binding FullName}"/>
-
-                            <DataGridTextColumn Header="Дней подряд"
-                            Binding="{Binding DaysCount}"/>
+                            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}"/>
+                            <DataGridTextColumn Header="Дней подряд" Binding="{Binding DaysCount}"/>
                         </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
 
+            <TabItem Header="Активность по дням">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Background="#EEF1F7" Padding="10" CornerRadius="5">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="5">
+                                <TextBlock Text="Дата" FontWeight="Bold"/>
+                                <DatePicker x:Name="date"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                        Content="Сформировать"
+                        Width="130" Height="35"
+                        Margin="10,20,0,0"
+                        Click="LoadDailyActivity_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <DataGrid Grid.Row="1"
+                  x:Name="dailyGrid"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  Margin="0,10,0,0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Пользователь" Binding="{Binding Username}"/>
+                            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}"/>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding TotalRequests}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Топ операций">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Background="#EEF1F7" Padding="10" CornerRadius="5">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="5">
+                                <TextBlock Text="Дата с" FontWeight="Bold"/>
+                                <DatePicker x:Name="opDateFrom"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="5">
+                                <TextBlock Text="Дата по" FontWeight="Bold"/>
+                                <DatePicker x:Name="opDateTo"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="2"
+                                    Content="Сформировать"
+                                    Width="130" Height="35"
+                                    Margin="10,20,0,0"
+                                    Click="LoadOperationStats_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <DataGrid Grid.Row="1"
+                              x:Name="operationGrid"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              Margin="0,10,0,0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Операция" Binding="{Binding Name}"/>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding TotalCount}"/>
+                        </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </TabItem>

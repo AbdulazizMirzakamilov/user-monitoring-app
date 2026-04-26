@@ -15,6 +15,8 @@ namespace UserMonitoringApp.Services
                 .ConnectionString;
         }
 
+        #region Отчеты по активности
+
         public List<AnomalyReportItem> GetAnomalyReport(DateTime from, DateTime to, int threshold)
         {
             var result = new List<AnomalyReportItem>();
@@ -33,8 +35,7 @@ namespace UserMonitoringApp.Services
                 WHERE al.recorded_at BETWEEN @from AND @to
                 GROUP BY u.username, full_name
                 HAVING SUM(CASE WHEN ao.operation_id = 6 THEN ao.count ELSE 0 END) > @threshold
-                ORDER BY requests_count DESC;
-            ";
+                ORDER BY requests_count DESC;";
 
             using var cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("from", from);
@@ -42,7 +43,6 @@ namespace UserMonitoringApp.Services
             cmd.Parameters.AddWithValue("threshold", threshold);
 
             using var reader = cmd.ExecuteReader();
-
             while (reader.Read())
             {
                 result.Add(new AnomalyReportItem
@@ -56,6 +56,46 @@ namespace UserMonitoringApp.Services
             return result;
         }
 
+        public List<DailyActivityItem> GetDailyActivity(DateTime date)
+        {
+            var result = new List<DailyActivityItem>();
+
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            string sql = @"
+                SELECT
+                    u.username,
+                    TRIM(u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '')) AS full_name,
+                    SUM(ao.count) AS total_requests
+                FROM activity_log al
+                JOIN users u ON u.user_id = al.user_id
+                JOIN activity_operations ao ON ao.activity_id = al.activity_id
+                WHERE DATE(al.recorded_at) = @date
+                GROUP BY u.username, full_name
+                ORDER BY total_requests DESC;";
+
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("date", date);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                result.Add(new DailyActivityItem
+                {
+                    Username = reader.GetString(0),
+                    FullName = reader.GetString(1),
+                    TotalRequests = Convert.ToInt32(reader[2])
+                });
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Отчеты по IP и Времени
+
         public List<IpReportItem> GetIpReport(DateTime from, DateTime to)
         {
             var result = new List<IpReportItem>();
@@ -66,24 +106,22 @@ namespace UserMonitoringApp.Services
             string sql = @"
                 SELECT 
                     u.username,
-                    u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '') AS full_name,
+                    TRIM(u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '')) AS full_name,
                     COUNT(DISTINCT ll.ip_address) AS ip_count,
                     DATE(ll.logged_at) AS log_date
                 FROM login_log ll
                 JOIN users u ON u.user_id = ll.user_id
                 WHERE ll.logged_at BETWEEN @from AND @to
-                  AND ll.is_success = TRUE
+                    AND ll.is_success = TRUE
                 GROUP BY u.username, full_name, log_date
                 HAVING COUNT(DISTINCT ll.ip_address) > 1
-                ORDER BY log_date DESC;
-            ";
+                ORDER BY log_date DESC;";
 
             using var cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("from", from);
             cmd.Parameters.AddWithValue("to", to);
 
             using var reader = cmd.ExecuteReader();
-
             while (reader.Read())
             {
                 result.Add(new IpReportItem
@@ -106,36 +144,31 @@ namespace UserMonitoringApp.Services
             conn.Open();
 
             string sql = @"
-        WITH activity_days AS (
-            SELECT 
-                user_id,
-                DATE(recorded_at) AS day
-            FROM activity_log
-            WHERE recorded_at BETWEEN @from AND @to
-            GROUP BY user_id, day
-        ),
-        grouped AS (
-            SELECT 
-                user_id,
-                day,
-                day - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY day)) * INTERVAL '1 day' AS grp
-            FROM activity_days
-        ),
-        series AS (
-            SELECT 
-                user_id,
-                COUNT(*) AS days_count
-            FROM grouped
-            GROUP BY user_id, grp
-        )
-        SELECT 
-            u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '') AS full_name,
-            s.days_count
-        FROM series s
-        JOIN users u ON u.user_id = s.user_id
-        WHERE s.days_count >= @threshold
-        ORDER BY s.days_count DESC;
-    ";
+                WITH activity_days AS (
+                    SELECT user_id, DATE(recorded_at) AS day
+                    FROM activity_log
+                    WHERE recorded_at BETWEEN @from AND @to
+                    GROUP BY user_id, day
+                ),
+                grouped AS (
+                    SELECT 
+                        user_id,
+                        day,
+                        day - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY day)) * INTERVAL '1 day' AS grp
+                    FROM activity_days
+                ),
+                series AS (
+                    SELECT user_id, COUNT(*) AS days_count
+                    FROM grouped
+                    GROUP BY user_id, grp
+                )
+                SELECT 
+                    u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '') AS full_name,
+                    s.days_count
+                FROM series s
+                JOIN users u ON u.user_id = s.user_id
+                WHERE s.days_count >= @threshold
+                ORDER BY s.days_count DESC;";
 
             using var cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("from", from);
@@ -143,7 +176,6 @@ namespace UserMonitoringApp.Services
             cmd.Parameters.AddWithValue("threshold", threshold);
 
             using var reader = cmd.ExecuteReader();
-
             while (reader.Read())
             {
                 result.Add(new ContinuousWorkItem
@@ -155,5 +187,46 @@ namespace UserMonitoringApp.Services
 
             return result;
         }
+
+        #endregion
+
+        #region Статистика операций
+
+        public List<OperationStatsItem> GetOperationStats(DateTime from, DateTime to)
+        {
+            var result = new List<OperationStatsItem>();
+
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            string sql = @"
+                SELECT 
+                    name,
+                    SUM(ao.count) AS total_count
+                FROM activity_operations ao
+                JOIN activity_log al ON al.activity_id = ao.activity_id
+                JOIN operation_types ot ON ot.operation_id = ao.operation_id
+                WHERE al.recorded_at BETWEEN @from AND @to
+                GROUP BY ot.name
+                ORDER BY total_count DESC;";
+
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("from", from);
+            cmd.Parameters.AddWithValue("to", to);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                result.Add(new OperationStatsItem
+                {
+                    Name = reader.GetString(0),
+                    TotalCount = (int)reader.GetInt64(1)
+                });
+            }
+
+            return result;
+        }
+
+        #endregion
     }
 }
