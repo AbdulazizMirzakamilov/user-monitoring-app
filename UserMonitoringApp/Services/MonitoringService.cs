@@ -25,7 +25,7 @@ namespace UserMonitoringApp.Services
             string sql = @"
                 SELECT 
                     u.username,
-                    u.last_name || ' ' || u.first_name AS full_name,
+                    u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '') AS full_name,
                     SUM(CASE WHEN ao.operation_id = 6 THEN ao.count ELSE 0 END) AS requests_count
                 FROM activity_log al
                 JOIN users u ON u.user_id = al.user_id
@@ -66,7 +66,7 @@ namespace UserMonitoringApp.Services
             string sql = @"
                 SELECT 
                     u.username,
-                    u.last_name || ' ' || u.first_name AS full_name,
+                    u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '') AS full_name,
                     COUNT(DISTINCT ll.ip_address) AS ip_count,
                     DATE(ll.logged_at) AS log_date
                 FROM login_log ll
@@ -129,7 +129,7 @@ namespace UserMonitoringApp.Services
             GROUP BY user_id, grp
         )
         SELECT 
-            u.last_name || ' ' || u.first_name AS full_name,
+            u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '') AS full_name,
             s.days_count
         FROM series s
         JOIN users u ON u.user_id = s.user_id

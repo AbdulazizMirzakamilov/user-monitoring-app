@@ -15,13 +15,13 @@ namespace UserMonitoringApp
         {
             InitializeComponent();
 
-            dateFrom.SelectedDate = DateTime.Now.AddDays(-7);
+            dateFrom.SelectedDate = DateTime.Now.AddDays(-30);
             dateTo.SelectedDate = DateTime.Now;
 
-            ipDateFrom.SelectedDate = DateTime.Now.AddDays(-7);
+            ipDateFrom.SelectedDate = DateTime.Now.AddDays(-30);
             ipDateTo.SelectedDate = DateTime.Now;
 
-            contDateFrom.SelectedDate = DateTime.Now.AddDays(-7);
+            contDateFrom.SelectedDate = DateTime.Now.AddDays(-30);
             contDateTo.SelectedDate = DateTime.Now;
         }
 
@@ -181,10 +181,27 @@ namespace UserMonitoringApp
 
             var properties = typeof(T).GetProperties();
 
+            // Красивые названия колонок
+            var headers = new Dictionary<string, string>
+            {
+                { "Username", "Пользователь" },
+                { "FullName", "ФИО" },
+                { "RequestsCount", "Количество запросов" },
+                { "IpCount", "Количество IP" },
+                { "Date", "Дата" },
+                { "DaysCount", "Дней подряд" }
+            };
+
             // Заголовки
             for (int i = 0; i < properties.Length; i++)
             {
-                worksheet.Cell(1, i + 1).Value = properties[i].Name;
+                var propName = properties[i].Name;
+                var header = headers.ContainsKey(propName) ? headers[propName] : propName;
+
+                var cell = worksheet.Cell(1, i + 1);
+                cell.Value = header;
+                cell.Style.Font.Bold = true;
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             }
 
             // Данные
@@ -193,9 +210,43 @@ namespace UserMonitoringApp
                 for (int col = 0; col < properties.Length; col++)
                 {
                     var value = properties[col].GetValue(data[row]);
-                    worksheet.Cell(row + 2, col + 1).Value = value?.ToString();
+
+                    var cell = worksheet.Cell(row + 2, col + 1);
+
+                    if (value is DateTime dt)
+                    {
+                        cell.Value = dt;
+                        cell.Style.DateFormat.Format = "dd.MM.yyyy";
+                    }
+                    else
+                    {
+                        cell.Value = value?.ToString();
+                    }
+
+                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 }
             }
+
+            // Автоширина колонок
+            worksheet.Columns().AdjustToContents();
+
+            // Границы
+            var range = worksheet.Range(1, 1, data.Count + 1, properties.Length);
+            range.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            range.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+            // Позиция под таблицей
+            int infoRow = data.Count + 3;
+
+            worksheet.Cell(infoRow, 1).Value = "Дата формирования:";
+            worksheet.Cell(infoRow, 2).Value = DateTime.Now;
+            worksheet.Cell(infoRow, 2).Style.DateFormat.Format = "dd.MM.yyyy HH:mm";
+
+            worksheet.Cell(infoRow + 1, 1).Value = "Сформировал:";
+            worksheet.Cell(infoRow + 1, 2).Value = Environment.UserName;
+
+            worksheet.Range(infoRow, 1, infoRow + 1, 2).Style.Font.Italic = true;
+            worksheet.Columns().AdjustToContents();
 
             workbook.SaveAs(dialog.FileName);
         }
