@@ -4,11 +4,15 @@ using System.Windows;
 using System.Windows.Controls;
 using UserMonitoringApp.Models;
 using UserMonitoringApp.Services;
+using System.ComponentModel;
 
 namespace UserMonitoringApp
 {
     public partial class MainWindow : Window
     {
+        private readonly MonitoringService _monitoringService = new MonitoringService();
+
+        // Списки для хранения загруженных данных
         private List<AnomalyReportItem> _anomalyData;
         private List<IpReportItem> _ipData;
         private List<ContinuousWorkItem> _contData;
@@ -17,148 +21,129 @@ namespace UserMonitoringApp
         {
             InitializeComponent();
 
-            // Инициализация дат по умолчанию
             var startDate = DateTime.Now.AddDays(-30);
             var endDate = DateTime.Now;
 
             dateFrom.SelectedDate = startDate;
             dateTo.SelectedDate = endDate;
-
             ipDateFrom.SelectedDate = startDate;
             ipDateTo.SelectedDate = endDate;
-
             contDateFrom.SelectedDate = startDate;
             contDateTo.SelectedDate = endDate;
-
             opDateFrom.SelectedDate = startDate;
             opDateTo.SelectedDate = endDate;
         }
 
-        #region Обработчики загрузки данных
+        #region Обработчики загрузки данных (с обработкой ошибок - ПУНКТ 3)
 
         private void LoadReport_Click(object sender, RoutedEventArgs e)
         {
             if (dateFrom.SelectedDate == null || dateTo.SelectedDate == null)
             {
-                MessageBox.Show("Выберите даты");
-                return;
-            }
-
-            if (dateFrom.SelectedDate > dateTo.SelectedDate)
-            {
-                MessageBox.Show("Дата 'с' не может быть больше даты 'по'");
+                MessageBox.Show("Выберите даты", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (!int.TryParse(thresholdBox.Text, out int threshold))
             {
-                MessageBox.Show("Порог должен быть числом");
+                MessageBox.Show("Порог должен быть числом", "Ошибка ввода", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            var service = new MonitoringService();
-            var data = service.GetAnomalyReport(
-                dateFrom.SelectedDate.Value,
-                dateTo.SelectedDate.Value,
-                threshold
-            );
-
-            if (data.Count == 0)
+            try
             {
-                MessageBox.Show("Данные не найдены");
-            }
+                var data = _monitoringService.GetAnomalyReport(
+                    dateFrom.SelectedDate.Value,
+                    dateTo.SelectedDate.Value,
+                    threshold
+                );
 
-            dataGrid.ItemsSource = null;
-            _anomalyData = data;
-            dataGrid.ItemsSource = _anomalyData;
+                if (data.Count == 0) MessageBox.Show("Данные по аномалиям не найдены");
+
+                dataGrid.ItemsSource = null;
+                _anomalyData = data;
+                dataGrid.ItemsSource = _anomalyData;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка базы данных: {ex.Message}", "Критическая ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void LoadIpReport_Click(object sender, RoutedEventArgs e)
         {
-            if (ipDateFrom.SelectedDate == null || ipDateTo.SelectedDate == null)
+            if (ipDateFrom.SelectedDate == null || ipDateTo.SelectedDate == null) return;
+
+            try
             {
-                MessageBox.Show("Выберите даты");
-                return;
-            }
+                var data = _monitoringService.GetIpReport(
+                    ipDateFrom.SelectedDate.Value,
+                    ipDateTo.SelectedDate.Value
+                );
 
-            if (ipDateFrom.SelectedDate > ipDateTo.SelectedDate)
+                if (data.Count == 0) MessageBox.Show("Данные по IP не найдены");
+
+                ipGrid.ItemsSource = null;
+                _ipData = data;
+                ipGrid.ItemsSource = _ipData;
+            }
+            catch (Exception ex)
             {
-                MessageBox.Show("Дата 'с' не может быть больше даты 'по'");
-                return;
+                MessageBox.Show($"Ошибка при получении IP-отчета: {ex.Message}");
             }
-
-            var service = new MonitoringService();
-            var data = service.GetIpReport(
-                ipDateFrom.SelectedDate.Value,
-                ipDateTo.SelectedDate.Value
-            );
-
-            if (data.Count == 0)
-            {
-                MessageBox.Show("Данные не найдены");
-            }
-
-            ipGrid.ItemsSource = null;
-            _ipData = data;
-            ipGrid.ItemsSource = _ipData;
         }
 
         private void LoadContinuousReport_Click(object sender, RoutedEventArgs e)
         {
-            if (contDateFrom.SelectedDate == null || contDateTo.SelectedDate == null)
+            if (contDateFrom.SelectedDate == null || contDateTo.SelectedDate == null) return;
+            if (!int.TryParse(contThresholdBox.Text, out int threshold)) return;
+
+            try
             {
-                MessageBox.Show("Выберите даты");
-                return;
-            }
+                var data = _monitoringService.GetContinuousWorkReport(
+                    contDateFrom.SelectedDate.Value,
+                    contDateTo.SelectedDate.Value,
+                    threshold
+                );
 
-            if (contDateFrom.SelectedDate > contDateTo.SelectedDate)
+                contGrid.ItemsSource = null;
+                _contData = data;
+                contGrid.ItemsSource = _contData;
+            }
+            catch (Exception ex)
             {
-                MessageBox.Show("Дата 'с' не может быть больше даты 'по'");
-                return;
+                MessageBox.Show($"Ошибка при расчете непрерывной работы: {ex.Message}");
             }
-
-            if (!int.TryParse(contThresholdBox.Text, out int threshold))
-            {
-                MessageBox.Show("Порог должен быть числом");
-                return;
-            }
-
-            var service = new MonitoringService();
-            var data = service.GetContinuousWorkReport(
-                contDateFrom.SelectedDate.Value,
-                contDateTo.SelectedDate.Value,
-                threshold
-            );
-
-            if (data.Count == 0)
-            {
-                MessageBox.Show("Данные не найдены");
-            }
-
-            contGrid.ItemsSource = null;
-            _contData = data;
-            contGrid.ItemsSource = _contData;
         }
 
         private void LoadOperationStats_Click(object sender, RoutedEventArgs e)
         {
-            var service = new MonitoringService();
-            var data = service.GetOperationStats(
-                opDateFrom.SelectedDate.Value,
-                opDateTo.SelectedDate.Value
-            );
-
-            operationGrid.ItemsSource = data;
+            try
+            {
+                var data = _monitoringService.GetOperationStats(
+                    opDateFrom.SelectedDate.Value,
+                    opDateTo.SelectedDate.Value
+                );
+                operationGrid.ItemsSource = data;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка статистики: {ex.Message}");
+            }
         }
 
         private void LoadDailyActivity_Click(object sender, RoutedEventArgs e)
         {
             if (date.SelectedDate == null) return;
-
-            var service = new MonitoringService();
-            var data = service.GetDailyActivity(date.SelectedDate.Value);
-
-            dailyGrid.ItemsSource = data;
+            try
+            {
+                var data = _monitoringService.GetDailyActivity(date.SelectedDate.Value);
+                dailyGrid.ItemsSource = data;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка за день: {ex.Message}");
+            }
         }
 
         #endregion
@@ -195,7 +180,7 @@ namespace UserMonitoringApp
 
         #region Экспорт в Excel
 
-        private void ExportToExcel<T>(List<T> data, string fileName)
+        private void ExportToExcel<T>(List<T> data, string fileName, string reportName)
         {
             var dialog = new SaveFileDialog
             {
@@ -205,107 +190,102 @@ namespace UserMonitoringApp
 
             if (dialog.ShowDialog() != true) return;
 
-            using var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("Report");
-            var properties = typeof(T).GetProperties();
-
-            // Словарь для маппинга заголовков
-            var headers = new Dictionary<string, string>
+            try
             {
-                { "Username", "Пользователь" },
-                { "FullName", "ФИО" },
-                { "RequestsCount", "Количество запросов" },
-                { "IpCount", "Количество IP" },
-                { "Date", "Дата" },
-                { "DaysCount", "Дней подряд" },
-                { "Name", "Операция" },
-                { "TotalCount", "Количество" },
-                { "TotalRequests", "Всего запросов" }
-            };
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("Отчет");
+                var properties = typeof(T).GetProperties();
 
-            // Формирование шапки таблицы
-            for (int i = 0; i < properties.Length; i++)
-            {
-                var propName = properties[i].Name;
-                var headerText = headers.ContainsKey(propName) ? headers[propName] : propName;
+                // Название отчета
+                var titleCell = worksheet.Cell(1, 1);
+                titleCell.Value = reportName;
+                titleCell.Style.Font.Bold = true;
+                titleCell.Style.Font.FontSize = 14;
+                titleCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheet.Range(1, 1, 1, properties.Length).Merge();
 
-                var cell = worksheet.Cell(1, i + 1);
-                cell.Value = headerText;
-                cell.Style.Font.Bold = true;
-                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#EEF1F7");
-            }
-
-            // Заполнение данными
-            for (int row = 0; row < data.Count; row++)
-            {
-                for (int col = 0; col < properties.Length; col++)
+                // Формирование шапки таблицы
+                for (int i = 0; i < properties.Length; i++)
                 {
-                    var value = properties[col].GetValue(data[row]);
-                    var cell = worksheet.Cell(row + 2, col + 1);
+                    var attribute = properties[i].GetCustomAttributes(typeof(DisplayNameAttribute), true)
+                        .FirstOrDefault() as DisplayNameAttribute;
 
-                    if (value is DateTime dt)
-                    {
-                        cell.Value = dt;
-                        cell.Style.DateFormat.Format = "dd.MM.yyyy";
-                    }
-                    else
-                    {
-                        cell.Value = value?.ToString() ?? "";
-                    }
+                    var headerText = attribute != null ? attribute.DisplayName : properties[i].Name;
 
+                    var cell = worksheet.Cell(2, i + 1);
+                    cell.Value = headerText;
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#EEF1F7");
                     cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 }
+
+                // Заполнение данными
+                for (int row = 0; row < data.Count; row++)
+                {
+                    for (int col = 0; col < properties.Length; col++)
+                    {
+                        var value = properties[col].GetValue(data[row]);
+                        var cell = worksheet.Cell(row + 3, col + 1);
+
+                        if (value is DateTime dt)
+                        {
+                            cell.Value = dt;
+                            cell.Style.DateFormat.Format = "dd.MM.yyyy";
+                        }
+                        else if (value is int || value is long || value is double || value is decimal)
+                        {
+                            cell.Value = Convert.ToDouble(value);
+                        }
+                        else
+                        {
+                            cell.Value = value?.ToString() ?? "";
+                        }
+
+                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    }
+                }
+
+                // Информационный блок
+                int footerRow = data.Count + 5;
+
+                worksheet.Cell(footerRow, 1).Value = "Дата формирования:";
+                worksheet.Cell(footerRow, 2).Value = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
+
+                worksheet.Cell(footerRow + 1, 1).Value = "Сформировал:";
+                worksheet.Cell(footerRow + 1, 2).Value = Environment.UserName;
+
+                // Автоподбор ширины колонок
+                worksheet.Columns().AdjustToContents();
+
+                // Стили для подписей в подвале
+                worksheet.Range(footerRow, 1, footerRow + 1, 1).Style.Font.Bold = true;
+
+                workbook.SaveAs(dialog.FileName);
+                MessageBox.Show("Данные успешно экспортированы!", "Экспорт", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-
-            // Оформление: границы и автоширина
-            var range = worksheet.Range(1, 1, data.Count + 1, properties.Length);
-            range.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            range.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-            worksheet.Columns().AdjustToContents();
-
-            // Подвал отчета
-            int infoRow = data.Count + 3;
-            worksheet.Cell(infoRow, 1).Value = "Дата формирования:";
-            worksheet.Cell(infoRow, 2).Value = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
-
-            worksheet.Cell(infoRow + 1, 1).Value = "Сформировал:";
-            worksheet.Cell(infoRow + 1, 2).Value = Environment.UserName;
-
-            worksheet.Range(infoRow, 1, infoRow + 1, 1).Style.Font.Bold = true;
-            worksheet.Columns().AdjustToContents();
-
-            workbook.SaveAs(dialog.FileName);
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при создании Excel: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
-
         private void ExportAnomaly_Click(object sender, RoutedEventArgs e)
         {
-            if (_anomalyData == null || _anomalyData.Count == 0)
-            {
-                MessageBox.Show("Нет данных для экспорта");
-                return;
-            }
-            ExportToExcel(_anomalyData, "AnomalyReport.xlsx");
+            if (_anomalyData == null || _anomalyData.Count == 0) return;
+            ExportToExcel(_anomalyData, "AnomalyReport.xlsx", "Отчет по аномальной активности");
         }
 
         private void ExportIp_Click(object sender, RoutedEventArgs e)
         {
-            if (_ipData == null || _ipData.Count == 0)
-            {
-                MessageBox.Show("Нет данных для экспорта");
-                return;
-            }
-            ExportToExcel(_ipData, "IpReport.xlsx");
+            if (_ipData == null || _ipData.Count == 0) return;
+            ExportToExcel(_ipData, "IpReport.xlsx", "Отчет по подозрительным IP-адресам");
         }
 
         private void ExportContinuous_Click(object sender, RoutedEventArgs e)
         {
-            if (_contData == null || _contData.Count == 0)
-            {
-                MessageBox.Show("Нет данных для экспорта");
-                return;
-            }
-            ExportToExcel(_contData, "ContinuousReport.xlsx");
+            if (_contData == null || _contData.Count == 0) return;
+            ExportToExcel(_contData, "ContinuousReport.xlsx", "Отчет по непрерывной активности");
         }
 
         #endregion

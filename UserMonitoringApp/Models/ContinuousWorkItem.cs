@@ -1,8 +1,12 @@
-﻿namespace UserMonitoringApp.Models
+﻿using System.ComponentModel;
+
+namespace UserMonitoringApp.Models;
+
+public class ContinuousWorkItem
 {
-    public class ContinuousWorkItem
-    {
-        public string FullName { get; set; }
-        public int DaysCount { get; set; }
-    }
+    [DisplayName("ФИО пользователя")]
+    public string FullName { get; set; } = string.Empty;
+
+    [DisplayName("Дней подряд")]
+    public int DaysCount { get; set; }
 }

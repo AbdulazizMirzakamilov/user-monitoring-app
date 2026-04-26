@@ -1,10 +1,19 @@
-﻿namespace UserMonitoringApp.Models
+﻿using System;
+using System.ComponentModel;
+
+namespace UserMonitoringApp.Models;
+
+public class IpReportItem
 {
-    public class IpReportItem
-    {
-        public string Username { get; set; }
-        public string FullName { get; set; }
-        public int IpCount { get; set; }
-        public DateTime Date { get; set; }
-    }
+    [DisplayName("Логин")]
+    public string Username { get; set; } = string.Empty;
+
+    [DisplayName("ФИО пользователя")]
+    public string FullName { get; set; } = string.Empty;
+
+    [DisplayName("Кол-во IP")]
+    public int IpCount { get; set; }
+
+    [DisplayName("Дата входа")]
+    public DateTime Date { get; set; }
 }

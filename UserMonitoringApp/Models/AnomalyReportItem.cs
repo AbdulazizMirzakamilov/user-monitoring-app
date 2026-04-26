@@ -1,9 +1,15 @@
-﻿namespace UserMonitoringApp.Models
+﻿using System.ComponentModel;
+
+namespace UserMonitoringApp.Models;
+
+public class AnomalyReportItem
 {
-    public class AnomalyReportItem
-    {
-        public string Username { get; set; }
-        public string FullName { get; set; }
-        public int RequestsCount { get; set; }
-    }
+    [DisplayName("Логин")]
+    public string Username { get; set; } = string.Empty;
+
+    [DisplayName("ФИО пользователя")]
+    public string FullName { get; set; } = string.Empty;
+
+    [DisplayName("Кол-во запросов")]
+    public int RequestsCount { get; set; }
 }
