@@ -4,7 +4,7 @@ namespace UserMonitoringApp.Models;
 
 public class AnomalyReportItem
 {
-    [DisplayName("Логин")]
+    [DisplayName("Идентификатор пользователя")]
     public string Username { get; set; } = string.Empty;
 
     [DisplayName("ФИО пользователя")]

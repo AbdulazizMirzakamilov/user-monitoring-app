@@ -5,7 +5,7 @@ namespace UserMonitoringApp.Models;
 
 public class IpReportItem
 {
-    [DisplayName("Логин")]
+    [DisplayName("Идентификатор пользователя")]
     public string Username { get; set; } = string.Empty;
 
     [DisplayName("ФИО пользователя")]
